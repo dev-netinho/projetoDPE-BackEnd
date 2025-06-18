@@ -12,7 +12,12 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-app.use(cors());
+// --- LINHA ALTERADA AQUI ---
+app.use(cors({
+  origin: '*' // Permite acesso de QUALQUER origem
+}));
+// -------------------------
+
 app.use(express.json());
 
 // --- ROTAS DA API (CRUD COMPLETO) ---
