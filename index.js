@@ -45,10 +45,39 @@ app.post('/auth/login', async (req, res) => {
 
 app.get('/api/presos', authMiddleware, async (req, res) => {
     try {
-        const { data, error } = await supabase.from('presos').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase
+            .from('presos')
+            .select('*');
+
         if (error) throw error;
+        
+        const dataAtual = new Date();
+        const calcularDias = (dataPrisao) => Math.floor((dataAtual - new Date(dataPrisao)) / (1000 * 60 * 60 * 24));
+
+        data.sort((a, b) => {
+            const diasA = calcularDias(a.quando_prendeu);
+            const diasB = calcularDias(b.quando_prendeu);
+
+            const getPrioridade = (dias) => {
+                if (dias > 90) return 1;
+                if (dias > 30) return 2;
+                return 3;
+            };
+
+            const prioridadeA = getPrioridade(diasA);
+            const prioridadeB = getPrioridade(diasB);
+
+            if (prioridadeA !== prioridadeB) {
+                return prioridadeA - prioridadeB;
+            }
+
+            return diasB - diasA;
+        });
+
         res.status(200).json(data);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.post('/api/presos', authMiddleware, async (req, res) => {
